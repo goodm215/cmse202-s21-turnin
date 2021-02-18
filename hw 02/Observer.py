@@ -7,7 +7,7 @@ class Observer():
     '''
     This class creates an artificial night sky observer.
     '''
-    
+    __slots = ['im1_filename', 'im2_filename', 'im1_data', 'im2_data']
     # This function will get called automatically
     # when a new "observer" is created
     def __init__(self,im1_filename,im2_filename):
@@ -19,13 +19,12 @@ class Observer():
         self.im2_filename = im2_filename
         self.load_images(im1_filename,im2_filename)
         
-    def load_images():
+    def load_images(self, im1_filename, im2_filename):
         '''
-        This function is incomplete! It is missing the appropriate input vales
-        and the "pass" should be replaced with the appropriate code.
-        Update this docstring to explain what the function does (or should do).
+        This function takes two filepaths as arguments and loads the corresponding fits files as attributes for the class
         '''
-        pass
+        self.im1_data = fits.open(im1_filename)[0].data
+        self.im2_data = fits.open(im2_filename)[0].data
     
     def make_composite(self):
         '''
@@ -41,3 +40,17 @@ class Observer():
         # Compute the red channel values and then clip them to ensure nothing is > 1.0
         rgb[:,:,0] = 1.5 * (self.im2_data.astype("float")/norm_factor)
         rgb[:,:,0][rgb[:,:,0] > 1.0] = 1.0
+        
+        #compute green channel values
+        rgb[:, :, 1] = ((self.im2_data.astype("float") + self.im1_data.astype("float"))/2)/norm_factor
+        rgb[:,:,1][rgb[:,:,1] > 1.0] = 1.0
+    
+        #compute blue channel values
+        rgb[:, :, 2] = self.im1_data.astype("float")/norm_factor
+        rgb[:,:,2][rgb[:,:,2] > 1.0] = 1.0
+        
+        plt.imshow(rgb, origin='lower')
+        
+    def calc_stats(self):
+        print('image_data_1: Mean: ', self.im1_data.mean(), ' Stddev: ', self.im1_data.std(), ' Max: ', self.im1_data.max(), ' Min: ', self.im1_data.min())
+        print('image_data_2: Mean: ', self.im2_data.mean(), ' Stddev: ', self.im2_data.std(), ' Max: ', self.im2_data.max(), ' Min: ', self.im2_data.min())
